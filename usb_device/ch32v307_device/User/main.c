@@ -20,7 +20,9 @@
 #include "usbd_core.h"
 #include "usbd_cdc.h"
 
-
+#define PORT_SELECT_OTGFS 0
+#define PORT_SELECT_USBHSD 1
+#define PORT_SELECT PORT_SELECT_USBHSD
 /* Global typedef */
 
 /* Global define */
@@ -34,19 +36,16 @@ void usb_dc_low_level_init(void)
     RCC_USBHSConfig(RCC_USBPLL_Div2);
     RCC_USBHSPLLCKREFCLKConfig(RCC_USBHSPLLCKREFCLK_4M);
     RCC_USBHSPHYPLLALIVEcmd(ENABLE);
-#ifdef CONFIG_USB_HS
+#if PORT_SELECT == PORT_SELECT_USBHSD
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_USBHS, ENABLE);
+    NVIC_EnableIRQ( USBHS_IRQn );
 #else
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_OTG_FS, ENABLE);
+    //EXTEN->EXTEN_CTR |= EXTEN_USBD_PU_EN;
+    NVIC_EnableIRQ(OTG_FS_IRQn);
 #endif
 
     Delay_Us(100);
-#ifndef CONFIG_USB_HS
-    //EXTEN->EXTEN_CTR |= EXTEN_USBD_PU_EN;
-    NVIC_EnableIRQ(OTG_FS_IRQn);
-#else
-    NVIC_EnableIRQ( USBHS_IRQn );
-#endif
 }
 /*********************************************************************
  * @fn      main
